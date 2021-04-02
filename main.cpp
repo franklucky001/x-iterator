@@ -63,6 +63,10 @@ void test_zip(){
         std::cout<<"front = "<< a<<", back "<<b<<std::endl;
     }
 }
+template<typename T, typename Enable> struct check;
+void foo(){
+    check<std::string> c = check<std::string>();
+}
 template<typename T, typename Enable= void >
 struct check;
 
