@@ -1,0 +1,4 @@
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/usr/bin/make -DCMAKE_C_COMPILER=/usr/local/Cellar/gcc@9/9.3.0_1/bin/gcc-9 -DCMAKE_CXX_COMPILER=/usr/local/Cellar/gcc@9/9.3.0_1/bin/g++-9 -G "CodeBlocks - Unix Makefiles" /Users/frankguo/workspace/cplus/fp_iterator
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/frankguo/workspace/cplus/fp_iterator/cmake-build-debug
