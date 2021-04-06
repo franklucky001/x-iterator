@@ -63,20 +63,28 @@ void test_zip(){
         std::cout<<"front = "<< a<<", back "<<b<<std::endl;
     }
 }
-template<typename T, typename Enable> struct check;
-void foo(){
-    check<std::string> c = check<std::string>();
-}
-template<typename T, typename Enable= void >
-struct check;
 
-template<typename T>
-struct check<T, typename std::enable_if_t<is_container<T>::value>>{
-    using D = typename T::value_type;
-};
+void test_flat(){
+    //fixme expect a,b,c,d,e,f,l,m,n
+    std::vector<std::string> vec_str = {"abc", "def", "lmn"};
+    auto result = IteratorWrapper(vec_str)
+            .flatten()
+            .collection();
+    for(auto ch: result){
+        std::cout<<"flat string item char = "<< ch<<std::endl;
+    }
+    //fixme expect 10,20,30,40,50,60a
+    std::vector<std::vector<int>> mat = {{10,20,30},{40,50,60}};
+    auto li = IteratorWrapper(mat)
+            .flatten()
+            .collection();
+    for(auto i: li){
+        std::cout<<"flat matrix item = "<<i<<std::endl;
+    }
+}
+
 int main() {
-//    test_scan();
-    check<std::string> c = check<std::string>();
+    test_flat();
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }
