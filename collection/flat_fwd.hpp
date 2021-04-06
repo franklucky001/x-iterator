@@ -85,8 +85,13 @@ public:
                     return std::nullopt;
                 else{
                     auto opt = _iter.prev();
-                    _inner_ptr = new IteratorWrapper(opt.value());
-                    return prev();
+                    //last filter not match
+                    if(opt.has_value()) {
+                        _inner_ptr = new IteratorWrapper(opt.value());
+                        return prev();
+                    }else{
+                        return std::nullopt;
+                    }
                 }
             }else{
                 return _inner_ptr->prev();
