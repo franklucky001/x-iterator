@@ -18,8 +18,9 @@ rust like fp iterator implement for c++
 ```c++
     std::vector<int> vec = {1,2,3,4,5,6};
     auto result = IteratorWrapper(vec)
-            .fold_right(0, [](int a, int b){return a - b;});
-    std::cout<<result<<std::endl;
+        .reduce_right([](int a, int b){return a - b;});
+    if(result.has_value())
+        std::cout<<result.value()<<std::endl;
 ```
 
 ### fold
