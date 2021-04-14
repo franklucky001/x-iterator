@@ -40,10 +40,10 @@ public:
         return ZipContainer<Item, Container>(*this, container);
     }
     template<typename F>
-    auto map(F && f)->MapIterator<typename std::result_of<F(Item)>::type, decltype(f)>{
+    auto map(F && transform)->MapIterator<typename std::result_of<F(Item)>::type, decltype(transform)>{
         // TODO fix return type as template parameter
         using Return = typename std::result_of<F(Item)>::type;
-        return MapIterator<Return , decltype(f)>(*this, std::forward<decltype(f)>(f));
+        return MapIterator<Return , decltype(transform)>(*this, std::forward<decltype(transform)>(transform));
     }
 
     Flatten<Item> flatten(){
@@ -51,9 +51,8 @@ public:
     }
 
     template<typename F>
-    auto flat_map(F && f)->FlatMapIterator<Item, typename std::result_of<F(Item)>::type, F>{
-        using Return = typename std::result_of<F(Item)>::type;
-        return FlatMapIterator<Item, Return, F>(*this);
+    auto flat_map(F && transform)->FlatMapIterator<Item, decltype(transform)>{
+        return FlatMapIterator<Item, decltype(transform)>(*this, std::forward<decltype(transform)>(transform));
     }
     template<typename P>
     auto filter(P && predicate) ->FilterIterator<T, decltype(predicate)>{
@@ -123,7 +122,7 @@ public:
         return ScanIterator<B, Item, decltype(accum)>(std::forward<B>(_init), *this, std::forward<decltype(accum)>(accum), true);
     }
 
-    std::vector<Item> collection(){
+    std::vector<Item> collect(){
         std::vector<Item> result;
         while (has_next()){
             auto opt = this->next();

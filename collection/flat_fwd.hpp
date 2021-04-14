@@ -102,29 +102,41 @@ private:
     Iterator<Ts> & _iter;
     IteratorWrapper<Ts> * _inner_ptr;
 };
-template<typename T, typename R, typename F, typename Enable=void>
+template<typename T, typename F, typename Enable=void>
 struct FlatMapIterator{
-    static_assert(is_container<T>::value);
+    static_assert(is_container<T>::value, "template T of flat_map Iterator must be a container, vector|list|array|string");
 };
-template<typename Ts, typename R, typename F>
-struct FlatMapIterator<Ts, R, F, typename std::enable_if_t<is_container<Ts>::value>>
-        : public Iterator<R>{
+template<typename Ts,  typename F>
+struct FlatMapIterator<Ts, F, typename std::enable_if_t<is_container<Ts>::value>>
+: public Iterator<typename std::result_of<F(typename Ts::value_type)>::type>{
 public:
-    using Self = FlatMapIterator<Ts, R, F, typename std::enable_if_t<is_container<Ts>::value>>;
-    using Item = R;
-    explicit FlatMapIterator(Iterator<Ts> & iter, F && f):_iter(iter), _transform(std::forward<F>(f)){}
-    FlatMapIterator(const Self & other):_iter(other._iter), _transform(other._transform){}
-    FlatMapIterator(Self && other) noexcept :_iter(other._iter), _transform(other._transform){}
+    using Self = FlatMapIterator<Ts, F, typename std::enable_if_t<is_container<Ts>::value>>;
+    using Item = typename std::result_of<F(typename Ts::value_type)>::type;
+    explicit FlatMapIterator(Iterator<Ts> & iter, F && f):_iter(iter),_flatten_ptr(nullptr), _transform(std::forward<F>(f)){}
+    FlatMapIterator(const Self & other):_iter(other._iter),_flatten_ptr(other._flatten_ptr), _transform(other._transform){}
+    FlatMapIterator(Self && other) noexcept :_iter(other._iter),_flatten_ptr(other._flatten_ptr), _transform(other._transform){}
+    virtual ~FlatMapIterator(){
+        if(_flatten_ptr){
+            delete _flatten_ptr;
+            _flatten_ptr = nullptr;
+        }
+    }
     bool has_next(){
-        return _iter.has_next();
+        return flatten_iter().has_next();
     }
     bool has_prev(){
-        return _iter.has_prev();
+        return flatten_iter().has_prev();
+    }
+    Flatten<Ts> & flatten_iter(){
+        if(nullptr == _flatten_ptr){
+            _flatten_ptr = new Flatten<Ts>(_iter);
+        }
+        return *_flatten_ptr;
     }
     std::optional<Item> next(){
         if(!has_next())
             return std::nullopt;
-        auto opt = _iter.next();
+        auto opt = flatten_iter().next();
         //last filter no match
         //TODO is require ?
         if(!opt.has_value())
@@ -136,14 +148,15 @@ public:
     std::optional<Item> prev(){
         if(!has_prev())
             return std::nullopt;
-        auto opt = _iter.prev();
+        auto opt = flatten_iter().prev();
         if(!opt.has_value())
             return std::nullopt;
         else
             return _transform(opt.value());
     }
 private:
-    Flatten<Ts> & _iter;
+    Iterator<Ts> & _iter;
+    Flatten<Ts> * _flatten_ptr;
     F _transform;
 };
 #endif //FP_ITERATOR_FLAT_FWD_HPP

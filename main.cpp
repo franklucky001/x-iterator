@@ -8,9 +8,9 @@
 void test_map_filter(){
     std::vector<int> vec = {1,2,3,4,5,6, 7, 9};
     auto result = IteratorWrapper(vec)
-            .filter([](int  v){return v % 2 == 0;})
-            .map([](int v){return v * 10;})
-            .collection();
+            .filter([](int v) { return v % 2 == 0; })
+            .map([](int v) { return v * 10; })
+            .collect();
     for(auto v: result){
         std::cout<<v<<std::endl;
     }
@@ -32,7 +32,7 @@ void test_enumerate(){
     std::vector<int> vec = {1,2,3,4,5,6};
     auto result = IteratorWrapper(vec)
             .enumerate()
-            .collection();
+            .collect();
     for(auto [i, v] : result){
         std::cout<<"idx = "<< i<< ", value = "<<v<<std::endl;
     }
@@ -40,8 +40,8 @@ void test_enumerate(){
 void test_scan(){
     std::vector<int> vec = {1,2,3,4,5,6};
     auto result = IteratorWrapper(vec)
-            .scan_right(30, [](int _init, int v){return _init - v;})
-            .collection();
+            .scan_right(30, [](int _init, int v) { return _init - v; })
+            .collect();
     for(auto v: result){
         std::cout<<v<<std::endl;
     }
@@ -57,19 +57,19 @@ void test_zip(){
 #else
     auto result = IteratorWrapper(front)
             .zip(back)
-            .collection();
+            .collect();
 #endif
     for (auto [a, b] : result){
         std::cout<<"front = "<< a<<", back "<<b<<std::endl;
     }
 }
 
-void test_flat(){
+void test_flatten(){
     //fixme expect a,b,c,d,e,f,l,m,n
     std::vector<std::string> vec_str = {"abc", "def", "lmn"};
     auto result = IteratorWrapper(vec_str)
             .flatten()
-            .collection();
+            .collect();
     for(auto ch: result){
         std::cout<<"flat string item char = "<< ch<<std::endl;
     }
@@ -77,14 +77,24 @@ void test_flat(){
     std::vector<std::vector<int>> mat = {{10,20,30},{40,50,60}};
     auto li = IteratorWrapper(mat)
             .flatten()
-            .collection();
+            .collect();
     for(auto i: li){
         std::cout<<"flat matrix item = "<<i<<std::endl;
     }
 }
 
+void test_flat_map(){
+    std::vector<std::string> vec_str = {"abc", "0123", "DEF"};
+    auto result = IteratorWrapper(vec_str)
+            .flat_map([](char c) { return static_cast<int>(c - '0'); })
+            .collect();
+    for (auto i : result){
+        std::cout<<i<<std::endl;
+    }
+}
+
 int main() {
-    test_flat();
+    test_flatten();
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }
