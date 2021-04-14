@@ -84,6 +84,7 @@ void test_flatten(){
 }
 
 void test_flat_map(){
+    //fixme expect 97,98,99,48,49,50,51,68,69,70
     std::vector<std::string> vec_str = {"abc", "0123", "DEF"};
     auto result = IteratorWrapper(vec_str)
             .flat_map([](char c) { return static_cast<int>(c - '0'); })
