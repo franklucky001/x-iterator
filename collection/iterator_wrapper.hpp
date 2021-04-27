@@ -16,6 +16,8 @@ template<typename B, typename T, typename F> class ScanIterator;
 template<typename T> class Enumerate;
 template<typename T, typename B> class Zip;
 template<typename T, typename Container> class ZipContainer;
+template<typename T> class Chain;
+template<typename T, typename Container> class ChainContainer;
 
 template<typename T>
 class Iterator{
@@ -38,6 +40,16 @@ public:
     template<class Container>
     ZipContainer<Item, Container> zip(Container & container){
         return ZipContainer<Item, Container>(*this, container);
+    }
+    template<typename B>
+    Chain<Item> chain(Iterator<B> & iter){
+        static_assert(std::is_same<Item, B>::value, "chain only support same value type");
+        return Chain<Item>(*this, iter);
+    }
+    template<typename Container>
+    ChainContainer<Item, Container> chain(Container & container){
+        static_assert(std::is_same<Item, typename Container::value_type>::value, "chain only support same value type");
+        return ChainContainer<Item, Container>(*this, container);
     }
     template<typename F>
     auto map(F && transform)->MapIterator<typename std::result_of<F(Item)>::type, decltype(transform)>{
@@ -422,6 +434,102 @@ private:
     size_t _offset;
 };
 
+template<typename T>
+class Chain : public Iterator<T>{
+public:
+    using Self = Chain<T>;
+    using Item = T;
+    explicit Chain(Iterator<T> & iter, Iterator<T> &  back):_iter(iter), _back(back){}
+    Chain(const Self & other): _iter(other._iter), _back(other._back){}
+    Chain(Self && other) noexcept : _iter(other._iter), _back(other._back){}
+    bool has_next(){
+        return _iter.has_next() || _back.has_next();
+    }
+    bool has_prev(){
+        return _iter.has_prev() || _back.has_prev();
+    }
+    std::optional<Item> next(){
+        if(!has_next())
+            return std::nullopt;
+        auto front = _iter.next();
+        // last filter no match
+        if(front.has_value())
+            return front.value();
+        else{
+            auto back = _back.next();
+            if(back.has_value())
+                return back.value();
+            else
+                return std::nullopt;
+        }
+    }
+    std::optional<Item> prev(){
+        if(!has_prev())
+            return std::nullopt;
+        auto front = _back.prev();
+        // last filter no match
+        if(front.has_value())
+            return front.value();
+        else{
+            auto back = _iter.prev();
+            if(back.has_value())
+                return back.value();
+            else
+                return std::nullopt;
+        }
+    }
+private:
+    Iterator<T> & _iter;
+    Iterator<T> & _back;
+};
+template<typename T,typename Container>
+class ChainContainer : public Iterator<T>{
+public:
+    using Self = ChainContainer<T, Container>;
+    using Item = T;
+    explicit ChainContainer(Iterator<T> & iter, Container & container):_iter(iter), _container(container),_offset(0){}
+    ChainContainer(const Self & other):_iter(other._iter), _container(other._container), _offset(other._offset){}
+    ChainContainer(Self && other) noexcept :_iter(other._iter), _container(other._container), _offset(other._offset){}
+    bool has_next() {
+//        auto back_beg = std::begin(_container);
+//        auto back_end = std::end(_container);
+        return _iter.has_next() || (std::begin(_container) + _offset != std::end(_container));
+    }
+    bool has_prev(){
+//        auto back_beg = std::rbegin(_container);
+//        auto back_end = std::rend(_container);
+        return _iter.has_prev() || (std::rbegin(_container) + _offset != std::rend(_container));
+    }
+    std::optional<Item> next(){
+        if(!has_next())
+            return std::nullopt;
+        auto front = _iter.next();
+        // last filter no match
+        if(front.has_value())
+            return front.value();
+        else{
+            auto back_beg = std::begin(_container);
+            auto back_value = *(back_beg + _offset++);
+            return back_value;
+        }
+    }
+    std::optional<Item> prev(){
+        if(!has_prev())
+            return std::nullopt;
+        auto front_cur = std::rbegin(_container) + _offset++;
+        // last filter no match
+        if(front_cur != std::rend(_container))
+            return *front_cur;
+        else{
+            auto back = _iter.next();
+            return back.value();
+        }
+    }
+private:
+    Iterator<T> & _iter;
+    Container & _container;
+    size_t _offset;
+};
 /****
  * indexed container vector, array
  * ***/

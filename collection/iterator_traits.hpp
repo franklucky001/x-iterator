@@ -30,5 +30,4 @@ struct is_container<std::array<T, n>> : std::true_type {
 template<typename T>
 struct is_container<std::basic_string<T>> : std::true_type {
 };
-
 #endif //FP_ITERATOR_ITERATOR_TRAITS_HPP

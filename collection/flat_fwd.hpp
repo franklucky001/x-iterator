@@ -20,9 +20,9 @@ struct Flatten<Ts, typename std::enable_if_t<is_container<Ts>::value>>
 public:
     using Self = Flatten<Ts, typename std::enable_if_t<is_container<Ts>::value>>;
     using Item = typename Ts::value_type;
-    explicit Flatten(Iterator<Ts> & iter):_iter(iter), _inner_ptr(nullptr){}
-    Flatten(const Self & other):_iter(other._iter),_inner_ptr(other._inner_ptr){}
-    Flatten(Self && other) noexcept :_iter(other._iter),_inner_ptr(other._inner_ptr){
+    explicit Flatten(Iterator<Ts> & iter):_iter(iter), _inner_ptr(nullptr), _inner_idx(0){}
+    Flatten(const Self & other):_iter(other._iter),_inner_ptr(other._inner_ptr),_inner_idx(other._inner_idx){}
+    Flatten(Self && other) noexcept :_iter(other._iter),_inner_ptr(other._inner_ptr),_inner_idx(other._inner_idx){
         other._inner_ptr = nullptr;
     }
     ~Flatten(){
@@ -46,27 +46,29 @@ public:
             if(!_iter.has_next())
                 return std::nullopt;
             auto opt = _iter.next();
-            _inner_ptr = new IteratorWrapper(opt.value());
-            return next();
+            //local variable
+            _inner_ptr = new Ts(opt.value());
+            return (*_inner_ptr)[_inner_idx++];
         }else{
-            if(!_inner_ptr->has_next()){
+            if(_inner_idx == _inner_ptr->size()){
                 delete _inner_ptr;
                 _inner_ptr = nullptr;
+                _inner_idx = 0;
                 if(!_iter.has_next())
                     return std::nullopt;
                 else{
                     auto opt = _iter.next();
                     //last filter not match
                     if(opt.has_value()) {
-                        _inner_ptr = new IteratorWrapper(opt.value());
-                        return next();
+                        _inner_ptr = new Ts(opt.value());
+                        return (*_inner_ptr)[_inner_idx++];
                     }else{
                         return std::nullopt;
                     }
 
                 }
             }else{
-                return _inner_ptr->next();
+                return (*_inner_ptr)[_inner_idx++];;
             }
         }
     }
@@ -75,32 +77,34 @@ public:
             if(!_iter.has_prev())
                 return std::nullopt;
             auto opt = _iter.prev();
-            _inner_ptr = new IteratorWrapper(opt.value());
+            _inner_ptr = new Ts(opt.value());
             return prev();
         }else{
-            if(!_inner_ptr->has_prev()){
+            if(_inner_idx == _inner_ptr->size()){
                 delete _inner_ptr;
                 _inner_ptr = nullptr;
+                _inner_idx = 0;
                 if(!_iter.has_prev())
                     return std::nullopt;
                 else{
                     auto opt = _iter.prev();
                     //last filter not match
                     if(opt.has_value()) {
-                        _inner_ptr = new IteratorWrapper(opt.value());
+                        _inner_ptr = new Ts(opt.value());
                         return prev();
                     }else{
                         return std::nullopt;
                     }
                 }
             }else{
-                return _inner_ptr->prev();
+                return (*_inner_ptr)[_inner_idx++];
             }
         }
     }
 private:
     Iterator<Ts> & _iter;
-    IteratorWrapper<Ts> * _inner_ptr;
+    Ts * _inner_ptr;
+    size_t _inner_idx;
 };
 template<typename T, typename F, typename Enable=void>
 struct FlatMapIterator{

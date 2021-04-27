@@ -63,9 +63,17 @@ void test_zip(){
         std::cout<<"front = "<< a<<", back "<<b<<std::endl;
     }
 }
-
+void test_chain(){
+    std::vector<int> front = {1,2,3,4,5,6};
+    std::vector<int> back = {11, 12, 13};
+    std::vector<char> chs = {'a', 'b', 'c'};
+    auto result = IteratorWrapper(front)
+            .chain(back)
+            .collect();
+    for(auto v : result)
+        std::cout<<v<<std::endl;
+}
 void test_flatten(){
-    //fixme expect a,b,c,d,e,f,l,m,n
     std::vector<std::string> vec_str = {"abc", "def", "lmn"};
     auto result = IteratorWrapper(vec_str)
             .flatten()
@@ -73,7 +81,6 @@ void test_flatten(){
     for(auto ch: result){
         std::cout<<"flat string item char = "<< ch<<std::endl;
     }
-    //fixme expect 10,20,30,40,50,60a
     std::vector<std::vector<int>> mat = {{10,20,30},{40,50,60}};
     auto li = IteratorWrapper(mat)
             .flatten()
@@ -84,10 +91,9 @@ void test_flatten(){
 }
 
 void test_flat_map(){
-    //fixme expect 97,98,99,48,49,50,51,68,69,70
     std::vector<std::string> vec_str = {"abc", "0123", "DEF"};
     auto result = IteratorWrapper(vec_str)
-            .flat_map([](char c) { return static_cast<int>(c - '0'); })
+            .flat_map([](char c) { return static_cast<int>(c); })
             .collect();
     for (auto i : result){
         std::cout<<i<<std::endl;
@@ -95,7 +101,7 @@ void test_flat_map(){
 }
 
 int main() {
-    test_flatten();
+    test_flat_map();
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }

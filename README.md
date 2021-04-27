@@ -71,11 +71,8 @@ rust like fp iterator implement for c++
     }
 ```
 
-## unsupported features
-There are some bugs in the function implementation, Fixme
 ### flatten
 ```c++
-    //fixme expect a,b,c,d,e,f,l,m,n
     std::vector<std::string> vec_str = {"abc", "def", "lmn"};
     auto result = IteratorWrapper(vec_str)
             .flatten()
@@ -83,7 +80,6 @@ There are some bugs in the function implementation, Fixme
     for(auto ch: result){
         std::cout<<"flat string item char = "<< ch<<std::endl;
     }
-    //fixme expect 10,20,30,40,50,60a
     std::vector<std::vector<int>> mat = {{10,20,30},{40,50,60}};
     auto li = IteratorWrapper(mat)
             .flatten()
@@ -95,10 +91,9 @@ There are some bugs in the function implementation, Fixme
 
 ### flat_map
 ```c++
-    //fixme expect 97,98,99,48,49,50,51,68,69,70
     std::vector<std::string> vec_str = {"abc", "0123", "DEF"};
     auto result = IteratorWrapper(vec_str)
-            .flat_map([](char c) { return static_cast<int>(c - '0'); })
+            .flat_map([](char c) { return static_cast<int>(c); })
             .collect();
     for (auto i : result){
         std::cout<<i<<std::endl;
