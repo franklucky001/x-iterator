@@ -99,3 +99,20 @@ rust like fp iterator implement for c++
         std::cout<<i<<std::endl;
     }
 ```
+
+### take && take_while
+```c++
+    std::vector<int> vs = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+#if 0
+    auto result = IteratorWrapper(vs)
+            .take(5)
+            .collect();
+#else
+    auto result = IteratorWrapper(vs)
+            .take_while([](int val){return val % 3 != 0;})
+            .collect();
+#endif
+    for(auto & i: result){
+        std::cout<<i<<std::endl;
+    }
+```

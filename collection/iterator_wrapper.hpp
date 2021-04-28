@@ -18,6 +18,8 @@ template<typename T, typename B> class Zip;
 template<typename T, typename Container> class ZipContainer;
 template<typename T> class Chain;
 template<typename T, typename Container> class ChainContainer;
+template<typename T> class Take;
+template<typename T, typename P> class TakeWhile;
 
 template<typename T>
 class Iterator{
@@ -50,6 +52,13 @@ public:
     ChainContainer<Item, Container> chain(Container & container){
         static_assert(std::is_same<Item, typename Container::value_type>::value, "chain only support same value type");
         return ChainContainer<Item, Container>(*this, container);
+    }
+    Take<Item> take(size_t n){
+        return Take<Item>(*this, n);
+    }
+    template<typename P>
+    auto take_while(P && predicate)->TakeWhile<Item, decltype(predicate)>{
+        return TakeWhile<Item, decltype(predicate)>(*this, std::forward<decltype(predicate)>(predicate));
     }
     template<typename F>
     auto map(F && transform)->MapIterator<typename std::result_of<F(Item)>::type, decltype(transform)>{
@@ -529,6 +538,92 @@ private:
     Iterator<T> & _iter;
     Container & _container;
     size_t _offset;
+};
+template<typename T>
+class Take : public Iterator<T>{
+public:
+    using Item = T;
+    using Self = Take<T>;
+    explicit Take(Iterator<T> & iter, size_t n):_iter(iter),_n(n){}
+    Take(const Self & other):_iter(other._iter),_n(other._n){}
+    Take(Self && other):_iter(other._iter),_n(other._n){}
+    bool has_next(){
+        return _iter.has_next() && _n > 0;
+    }
+    bool has_prev(){
+        return _iter.has_prev() && _n > 0;
+    }
+    std::optional<Item> next(){
+        if(!has_next())
+            return std::nullopt;
+        auto opt = _iter.next();
+        --_n;
+        if(opt.has_value())
+            return opt.value();
+        else
+            return std::nullopt;
+    }
+    std::optional<Item> prev(){
+        if(!has_prev())
+            return std::nullopt;
+        auto opt = _iter.prev();
+        if(opt.has_value())
+            return opt.value();
+        else
+            return std::nullopt;
+    }
+private:
+    Iterator<T> & _iter;
+    size_t _n;
+};
+template<typename T, typename P>
+class TakeWhile : public Iterator<T>{
+public:
+    using Item = T;
+    using Self = TakeWhile<T, P>;
+    explicit TakeWhile(Iterator<T>& iter, P && predicate):_iter(iter), _predicate(std::forward<P>(predicate)),_flag(true){}
+    TakeWhile(const Self & other):_iter(other._iter), _predicate(other._predicate),_flag(other._flag){}
+    TakeWhile(Self && other) noexcept :_iter(other._iter), _predicate(other._predicate),_flag(other._flag){}
+    bool has_next(){
+        return _flag && this->_iter.has_next();
+    }
+    bool has_prev(){
+        return _flag && this->_iter.has_prev();
+    }
+    std::optional<Item> next(){
+        if(!has_next())
+            return std::nullopt;
+        auto opt = this->_iter.next();
+        if(opt.has_value()) {
+            if(_predicate(opt.value()))
+                return opt.value();
+            else{
+                _flag = false;
+                return std::nullopt;
+            }
+        }
+        else
+            return std::nullopt;
+    }
+    std::optional<Item> prev(){
+        if(!has_prev())
+            return std::nullopt;
+        auto opt = this->_iter.prev();
+        if(opt.has_value()) {
+            if(_predicate(opt.value()))
+                return opt.value();
+            else{
+                _flag = false;
+                return std::nullopt;
+            }
+        }
+        else
+            return std::nullopt;
+    }
+private:
+    Iterator<T> & _iter;
+    P _predicate;
+    bool _flag;
 };
 /****
  * indexed container vector, array

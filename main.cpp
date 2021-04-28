@@ -99,9 +99,23 @@ void test_flat_map(){
         std::cout<<i<<std::endl;
     }
 }
-
+void test_take(){
+    std::vector<int> vs = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+#if 0
+    auto result = IteratorWrapper(vs)
+            .take(5)
+            .collect();
+#else
+    auto result = IteratorWrapper(vs)
+            .take_while([](int val){return val % 3 != 0;})
+            .collect();
+#endif
+    for(auto & i: result){
+        std::cout<<i<<std::endl;
+    }
+}
 int main() {
-    test_flat_map();
+    test_take();
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }
