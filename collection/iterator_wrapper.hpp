@@ -101,7 +101,7 @@ public:
             if(opt.has_value())
                 _init = op(_init, opt.value());
         }
-       return _init;
+        return _init;
     }
     template<class F>
     auto reduce(F && op) ->std::optional<typename std::result_of<F(T, T)>::type>{
@@ -232,12 +232,12 @@ public:
     using Item = B;
     using Self = ScanIterator<B, T, F>;
     explicit ScanIterator(B && init, Iterator<T>& iter, F && f, bool is_reverse=false)
-        :_init(init),_iter(iter),_accumulation(std::forward<F>(f)), _is_reverse(is_reverse){
+            :_init(init),_iter(iter),_accumulation(std::forward<F>(f)), _is_reverse(is_reverse){
     }
     ScanIterator(const Self & other)
-        :_init(other._init),_iter(other._iter),_accumulation(other._accumulation),_is_reverse(other.is_reverse){}
+            :_init(other._init),_iter(other._iter),_accumulation(other._accumulation),_is_reverse(other.is_reverse){}
     ScanIterator(Self && other)noexcept
-        :_init(other._init),_iter(other._iter),_accumulation(other._accumulation),_is_reverse(other.is_reverse){}
+            :_init(other._init),_iter(other._iter),_accumulation(other._accumulation),_is_reverse(other.is_reverse){}
     bool has_next(){
         if(_is_reverse)
             return has_prev();
@@ -499,14 +499,12 @@ public:
     explicit ChainContainer(Iterator<T> & iter, Container & container):_iter(iter), _container(container),_offset(0){}
     ChainContainer(const Self & other):_iter(other._iter), _container(other._container), _offset(other._offset){}
     ChainContainer(Self && other) noexcept :_iter(other._iter), _container(other._container), _offset(other._offset){}
+
     bool has_next() {
-//        auto back_beg = std::begin(_container);
-//        auto back_end = std::end(_container);
         return _iter.has_next() || (std::begin(_container) + _offset != std::end(_container));
     }
+
     bool has_prev(){
-//        auto back_beg = std::rbegin(_container);
-//        auto back_end = std::rend(_container);
         return _iter.has_prev() || (std::rbegin(_container) + _offset != std::rend(_container));
     }
     std::optional<Item> next(){
@@ -567,6 +565,7 @@ public:
         if(!has_prev())
             return std::nullopt;
         auto opt = _iter.prev();
+        --_n;
         if(opt.has_value())
             return opt.value();
         else
